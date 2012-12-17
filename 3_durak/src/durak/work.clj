@@ -1,5 +1,5 @@
 (ns durak.work
-  (:use [durak.core :only (run-game)] ))
+  (:use [durak.core :only (run-game)]))
 
 
 ;;; Your task is to write bot for playing card game "Durak": http://en.wikipedia.org/wiki/Durak
@@ -36,6 +36,36 @@
 ;;; Tramp is tramp suit of the game.
 
 ;;; To test your solution call (run-game YOUR_SOLUTION)
+
+(defn stronger? [tramp card1 card2]
+	(or 
+		(and (> (card2 :rank) (card1 :rank)) (= (card1 :suit) (card2 :suit)))
+		(and (= tramp (card2 :suit)) (not= tramp (card1 :suit)))))
+
+(defn cost [tramp card]
+	(if (= tramp (card :suit))
+		(+ 100 (card :rank)) 
+		(card :rank)))
+
+
+(defn simple-defend-fn [{hand :hand table :table tramp :tramp}]
+	;(println "defend with " hand " against " (last table))
+	(let [defend-against (last table)]
+		(if (empty? (filter (partial stronger? tramp defend-against) hand))
+			nil
+			(apply min-key (partial cost tramp) (filter (partial stronger? tramp defend-against) hand)))))
+
+
+(defn simple-attack-fn [{hand :hand table :table tramp :tramp :as data}]
+	;(println "attack with " hand)
+	(if (last table)
+		(if (empty? (filter #((set (map :rank table)) (% :rank)) hand))
+			nil
+			(apply min-key (partial cost tramp) (filter #((set (map :rank table)) (% :rank)) hand)))
+		(apply min-key (partial cost tramp) hand)))
+
+;
+(run-game {:attack simple-attack-fn :defend simple-defend-fn})
 ;;; Your bot is the player in the lower part of screen (cards a visible to your).
 ;;; To run next action press SPACE, to restart game press R.
 ;;; When game is over (one of the players has no cards in his hand) nothing will happen when your press SPACE.
@@ -46,6 +76,7 @@
 ;;; Implement program that takes 2 bots, runs game and return winner.
 ;;; Study init-game and next-action function in the src/durak/logic.clj. They can be used to run game.
 
+;(println (test-bots {:attack simple-attack-fn :defend simple-defend-fn} simple-bot))
 
 
 ;;; Implement bot that memorizes all cards played in game and use some smarter logic based on probability of opponents cards.

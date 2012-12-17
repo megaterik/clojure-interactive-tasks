@@ -104,7 +104,7 @@
     :walls (atom walls)
     :apples (atom (with-meta #{} {:num num-of-apples})))
    (->> [:snake :apples :walls] (map state) (apply update-apples))
-   (frame-rate 10)))
+   (frame-rate 50)))
 
 (defn run [num-of-apples walls grow? solution]
   (let [update (update-fn solution)]
@@ -154,5 +154,6 @@
   (let [walls (->> #(generate-walls-blot 20)
                    (repeatedly 5)
                    (apply concat)
-                   set)]
+                   set
+                   )]
     (run 5 walls true solution)))
